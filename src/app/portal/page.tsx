@@ -31,7 +31,7 @@ export default async function PortalHomePage() {
         <h1 className="page-title">Olá, {user.name}</h1>
         <p className="page-subtitle">
           {summary?.message ??
-            "Em breve: publicação de cargas e gestão de lances."}
+            "Gerencie cargas, propostas e a operação da sua empresa."}
         </p>
       </div>
 

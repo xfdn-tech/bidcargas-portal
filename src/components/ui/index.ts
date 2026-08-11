@@ -20,3 +20,5 @@ export {
   type TextAreaFieldProps,
   type TextFieldProps,
 } from "./text-field";
+export { LocationSearchField } from "./location-search-field";
+export { CurrencyField, type CurrencyFieldProps } from "./currency-field";

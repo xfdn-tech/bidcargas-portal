@@ -46,13 +46,13 @@ export const TextField = forwardRef<HTMLInputElement, TextFieldProps>(
         <input
           ref={ref}
           id={fieldId}
-          required={required}
+          aria-required={required || undefined}
           aria-invalid={Boolean(error)}
           aria-describedby={[hintId, errorId].filter(Boolean).join(" ") || undefined}
           className={cn("ui-input", error && "ui-input-error", className)}
           {...props}
         />
-        {hint ? (
+        {hint && !error ? (
           <p id={hintId} className="ui-field-hint">
             {hint}
           </p>
@@ -102,13 +102,13 @@ export const TextAreaField = forwardRef<
         ref={ref}
         id={fieldId}
         rows={rows}
-        required={required}
+        aria-required={required || undefined}
         aria-invalid={Boolean(error)}
         aria-describedby={[hintId, errorId].filter(Boolean).join(" ") || undefined}
         className={cn("ui-input ui-textarea", error && "ui-input-error", className)}
         {...props}
       />
-      {hint ? (
+      {hint && !error ? (
         <p id={hintId} className="ui-field-hint">
           {hint}
         </p>
@@ -155,7 +155,7 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(
           <select
             ref={ref}
             id={fieldId}
-            required={required}
+            aria-required={required || undefined}
             aria-invalid={Boolean(error)}
             aria-describedby={[hintId, errorId].filter(Boolean).join(" ") || undefined}
             className={cn("ui-input ui-select", error && "ui-input-error", className)}
@@ -164,7 +164,7 @@ export const SelectField = forwardRef<HTMLSelectElement, SelectFieldProps>(
             {children}
           </select>
         </div>
-        {hint ? (
+        {hint && !error ? (
           <p id={hintId} className="ui-field-hint">
             {hint}
           </p>
