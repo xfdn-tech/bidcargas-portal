@@ -1,0 +1,44 @@
+---
+description: Next.js portal whitelabel por account — bidcargas-portal
+globs: src/**/*.{ts,tsx}
+alwaysApply: false
+---
+
+# Next.js — bidcargas-portal
+
+## Papel
+
+`{slug}.bidcargas.com` — usuários da **account** (`account_admin`, `account_user`).
+
+## Whitelabel
+
+- Resolver `slug` pelo host (middleware)
+- Buscar `AccountSetting` (logo, cores) — aplicar CSS variables no layout
+- Login OTP; JWT com `accountId` da slug
+
+## Rotas
+
+```
+(auth)/login/
+(portal)/
+  layout.tsx       ← branding da account
+  page.tsx         ← dashboard cargas
+  loads/
+  bids/
+  users/
+  favorites/
+  chat/[loadId]/
+  settings/        ← account_admin
+```
+
+## Impersonação
+
+Super admin impersonando vê o portal **no backoffice** ou UI dedicada no app host — cookie em `app.*`. Portal slug continua para usuários reais da account.
+
+## API
+
+Prefixo `/portal/*` — sempre escopo `account_id` do token.
+
+## Dados
+
+Server Components + paginação; WebSocket client só no chat.

@@ -1,0 +1,29 @@
+---
+description: Whitelabel, tema e UX do portal da account
+globs: src/**/*.tsx
+alwaysApply: false
+---
+
+# Whitelabel — portal
+
+## Tema por account
+
+```tsx
+// layout.tsx — após carregar settings
+<style>{`:root { --brand-primary: ${primary}; }`}</style>
+```
+
+- Logo no header/sidebar
+- Dark mode + cores da marca (contraste acessível)
+
+## UX cargas
+
+- StatusBadge alinhado à API (`draft`, `published`, `negotiating`, …)
+- Lista de bids por load com ação aceitar/recusar + ConfirmDialog
+- Valor e prazo formatados pt-BR
+
+## Regras
+
+- **100% português** em labels, botões, toasts, erros e metadata (ver convenções do monorepo)
+- Mesmos padrões de toast/dialog do backoffice
+- Mobile-first — motoristas não usam portal, mas embarcadores sim
