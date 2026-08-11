@@ -1,26 +1,22 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { AuthUser } from "@/lib/api";
-import { isPortalRole } from "@/lib/api";
+import { canAccessPortal } from "@/lib/api";
+import { AUTH_CLIENT, AUTH_COOKIE_NAME } from "@/lib/auth-cookie";
 import { resolveApiUrl } from "@/lib/api-url";
-
-function buildCookieHeader(
-  jar: Awaited<ReturnType<typeof cookies>>,
-): string {
-  return jar
-    .getAll()
-    .map((item) => `${item.name}=${item.value}`)
-    .join("; ");
-}
 
 export async function getSessionUser(): Promise<AuthUser | null> {
   const jar = await cookies();
-  if (!jar.get("access_token")) {
+  const token = jar.get(AUTH_COOKIE_NAME)?.value;
+  if (!token) {
     return null;
   }
 
   const response = await fetch(`${resolveApiUrl()}/auth/me`, {
-    headers: { cookie: buildCookieHeader(jar) },
+    headers: {
+      cookie: `${AUTH_COOKIE_NAME}=${token}`,
+      "X-Auth-Client": AUTH_CLIENT,
+    },
     cache: "no-store",
   });
 
@@ -33,13 +29,17 @@ export async function getSessionUser(): Promise<AuthUser | null> {
 
 export async function requirePortalUser(): Promise<AuthUser> {
   const user = await getSessionUser();
-  if (!user || !isPortalRole(user.role)) {
+  if (!user || !canAccessPortal(user)) {
     redirect("/login");
   }
 
-  if (user.role === "super_admin" && !user.isImpersonating) {
-    redirect("/login");
-  }
+  return user;
+}
 
+export async function requireAccountAdmin(): Promise<AuthUser> {
+  const user = await requirePortalUser();
+  if (user.role !== "account_admin" && user.role !== "super_admin") {
+    redirect("/portal");
+  }
   return user;
 }

@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 const PROXY_TIMEOUT_MS = 90_000;
 
 function resolveApiProxyTarget(): string {
-  return (process.env.API_PROXY_TARGET ?? "http://localhost:3060").replace(
+  return (process.env.API_PROXY_TARGET ?? "http://127.0.0.1:3050").replace(
     /\/$/,
     "",
   );
@@ -40,6 +40,7 @@ async function proxyRequest(
     if (HOP_BY_HOP_HEADERS.has(normalized)) return;
     headers.set(key, value);
   });
+  headers.set("x-auth-client", "portal");
 
   const init: RequestInit = {
     method: request.method,
@@ -61,7 +62,7 @@ async function proxyRequest(
       (error.name === "TimeoutError" || error.name === "AbortError");
     const message = timedOut
       ? "A API demorou para responder. Tente novamente."
-      : "Não foi possível conectar à API. Verifique se bidcargas-api está em http://localhost:3060.";
+      : "Não foi possível conectar à API. Verifique se bidcargas-api está em http://localhost:3050.";
 
     return NextResponse.json(
       { message, statusCode: timedOut ? 504 : 502 },
@@ -70,9 +71,19 @@ async function proxyRequest(
   }
 
   const responseHeaders = new Headers();
+  const setCookies =
+    typeof upstream.headers.getSetCookie === "function"
+      ? upstream.headers.getSetCookie()
+      : [];
+
+  for (const cookie of setCookies) {
+    responseHeaders.append("set-cookie", cookie);
+  }
+
   upstream.headers.forEach((value, key) => {
     const normalized = key.toLowerCase();
     if (HOP_BY_HOP_HEADERS.has(normalized)) return;
+    if (normalized === "set-cookie") return;
     responseHeaders.set(key, value);
   });
 

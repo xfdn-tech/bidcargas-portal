@@ -1,4 +1,4 @@
-/** URL da API — browser usa proxy same-origin `/api`; SSR fala direto com a API. */
+/** URL da API — browser usa proxy same-origin `/api`; SSR usa o mesmo proxy via loopback. */
 export function resolveApiUrl(): string {
   const configured = process.env.NEXT_PUBLIC_API_URL?.trim();
   const isAbsolute =
@@ -18,8 +18,13 @@ export function resolveApiUrl(): string {
     return configured.replace(/\/$/, "");
   }
 
+  const appPort = process.env.PORT?.trim();
+  if (appPort && (!configured || configured.startsWith("/"))) {
+    return `http://127.0.0.1:${appPort}/api`;
+  }
+
   const proxy = (
-    process.env.API_PROXY_TARGET ?? "http://localhost:3060"
+    process.env.API_PROXY_TARGET ?? "http://127.0.0.1:3050"
   ).replace(/\/$/, "");
   return `${proxy}/api`;
 }

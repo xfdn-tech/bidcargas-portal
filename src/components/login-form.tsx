@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import {
   api,
+  canAccessPortal,
   getApiErrorMessage,
   type AuthUser,
 } from "@/lib/api";
@@ -39,11 +40,7 @@ export function LoginForm({ initialAccountSlug = "", brandTitle }: Props) {
 
     void api<AuthUser>("/auth/me", { headers })
       .then((user) => {
-        const allowed =
-          user.role === "account_admin" ||
-          user.role === "account_user" ||
-          (user.role === "super_admin" && user.isImpersonating);
-        if (allowed) {
+        if (canAccessPortal(user)) {
           window.location.href = "/portal";
         }
       })
@@ -98,12 +95,7 @@ export function LoginForm({ initialAccountSlug = "", brandTitle }: Props) {
         headers: authHeaders(),
       });
 
-      const allowed =
-        result.user.role === "account_admin" ||
-        result.user.role === "account_user" ||
-        (result.user.role === "super_admin" && result.user.isImpersonating);
-
-      if (!allowed) {
+      if (!canAccessPortal(result.user)) {
         setError("Este portal é para usuários da empresa embarcadora.");
         return;
       }

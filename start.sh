@@ -7,7 +7,7 @@ ROOT="$(cd .. && pwd)"
 source "${ROOT}/scripts/dev-utils.sh"
 
 export PORT="${PORT:-3052}"
-export API_PROXY_TARGET="${API_PROXY_TARGET:-http://localhost:3060}"
+export API_PROXY_TARGET="${API_PROXY_TARGET:-http://127.0.0.1:3050}"
 
 free_port "$PORT" "Portal"
 

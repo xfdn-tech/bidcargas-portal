@@ -38,7 +38,7 @@ export class ApiError extends Error {
   }
 }
 
-function formatApiErrorMessage(data: unknown, fallback = "Erro na requisição") {
+export function formatApiErrorMessage(data: unknown, fallback = "Erro na requisição") {
   if (!data || typeof data !== "object") return fallback;
   const message = (data as { message?: unknown }).message;
   if (Array.isArray(message)) return message.join(", ");
@@ -99,4 +99,11 @@ export async function logout(): Promise<void> {
 
 export function isPortalRole(role: string): boolean {
   return role === "account_admin" || role === "account_user";
+}
+
+export function canAccessPortal(user: AuthUser): boolean {
+  return (
+    isPortalRole(user.role) ||
+    (user.role === "super_admin" && Boolean(user.isImpersonating))
+  );
 }
