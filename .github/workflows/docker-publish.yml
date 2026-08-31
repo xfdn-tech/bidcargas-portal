@@ -12,19 +12,21 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ghcr.io/${{ github.repository }}
-  APP_VERSION: 0.0.6
-  DOCKER_SWARM_SERVICE: ${{ vars.DOCKER_SWARM_SERVICE || 'bidcargas_portal' }}
+  APP_VERSION: 0.0.8
+  DOCKER_SWARM_SERVICE: ${{ vars.DOCKER_SWARM_SERVICE || 'bidcargas-main_bidcargas-portal' }}
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write
       packages: write
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

@@ -1,0 +1,41 @@
+# BidCargas portal — stack Portainer / Docker Swarm
+# Portainer > Stacks > Add stack > Web editor
+# Nome da stack: bidcargas-portal
+# Serviço Swarm: bidcargas-portal_portal
+#
+# Imagem: ghcr.io/xfdn-tech/bidcargas-portal
+# Exige a stack bidcargas-api (rede bidcargas-internal) já publicada.
+# Rede network_public: proxy reverso (Traefik/Nginx). Host: {slug}.bidcargas.com
+
+version: "3.8"
+
+services:
+  portal:
+    image: ghcr.io/xfdn-tech/bidcargas-portal:${IMAGE_TAG:-latest}
+    networks:
+      - bidcargas-internal
+      - network_public
+    ports:
+      - "${PORTAL_PUBLISH_PORT:-3052}:3052"
+    environment:
+      NODE_ENV: production
+      PORT: "3052"
+      HOSTNAME: 0.0.0.0
+      API_PROXY_TARGET: ${API_PROXY_TARGET:-http://api:3050}
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 512M
+
+networks:
+  bidcargas-internal:
+    external: true
+    name: bidcargas-internal
+  network_public:
+    external: true
+    name: network_public
