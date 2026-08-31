@@ -15,6 +15,7 @@ import {
 import { api, getApiErrorMessage } from "@/lib/api";
 import type { UserRecord } from "@/lib/portal-types";
 import { PORTAL_USER_ROLES } from "@/lib/portal-types";
+import { CONTACT_CHANNEL_OPTIONS } from "@/lib/portal-types";
 
 type Props = {
   mode: "create" | "edit";
@@ -28,6 +29,11 @@ export function PortalUserForm({ mode, user }: Props) {
   const [role, setRole] = useState<UserRecord["role"]>(
     user?.role ?? "account_user",
   );
+  const [phone, setPhone] = useState(user?.phone ?? "");
+  const [contactChannel, setContactChannel] = useState<
+    "whatsapp" | "landline" | ""
+  >(user?.contactChannel ?? "whatsapp");
+  const [department, setDepartment] = useState(user?.department ?? "");
   const [isActive, setIsActive] = useState(user?.status !== "inactive");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,7 +47,14 @@ export function PortalUserForm({ mode, user }: Props) {
       if (mode === "create") {
         await api("/portal/users", {
           method: "POST",
-          json: { name, email, role },
+          json: {
+            name,
+            email,
+            role,
+            phone: phone.trim() || undefined,
+            contactChannel: contactChannel || undefined,
+            department: department.trim() || undefined,
+          },
         });
         router.push("/portal/users");
         router.refresh();
@@ -53,6 +66,9 @@ export function PortalUserForm({ mode, user }: Props) {
             email,
             role,
             status: isActive ? "active" : "inactive",
+            phone: phone.trim() || null,
+            contactChannel: contactChannel || null,
+            department: department.trim() || null,
           },
         });
         router.refresh();
@@ -114,6 +130,31 @@ export function PortalUserForm({ mode, user }: Props) {
                 </option>
               ))}
             </SelectField>
+            <TextField
+              label="Telefone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="(11) 99999-0000"
+            />
+            <SelectField
+              label="Canal"
+              value={contactChannel}
+              onChange={(e) =>
+                setContactChannel(e.target.value as "whatsapp" | "landline" | "")
+              }
+            >
+              {CONTACT_CHANNEL_OPTIONS.map((entry) => (
+                <option key={entry.value} value={entry.value}>
+                  {entry.label}
+                </option>
+              ))}
+            </SelectField>
+            <TextField
+              label="Departamento"
+              value={department}
+              onChange={(e) => setDepartment(e.target.value)}
+              placeholder="Ex.: Operações"
+            />
             {mode === "edit" ? (
               <CheckboxField
                 label="Usuário ativo"

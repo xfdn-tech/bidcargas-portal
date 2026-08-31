@@ -29,9 +29,20 @@ export function PortalUsersTable({ items, meta, canManage, sort }: Props) {
       cell: (row) => (
         <div>
           <p className="font-medium text-foreground">{row.name}</p>
-          <p className="text-sm text-muted">{row.email}</p>
+            <p className="text-sm text-muted">{row.email}</p>
+            {row.phone ? (
+              <p className="text-sm text-muted">
+                {row.phone}
+                {row.contactChannel === "landline" ? " · Fixo" : " · WhatsApp"}
+              </p>
+            ) : null}
         </div>
       ),
+    },
+    {
+      id: "department",
+      header: "Departamento",
+      cell: (row) => row.department || "—",
     },
     {
       id: "role",

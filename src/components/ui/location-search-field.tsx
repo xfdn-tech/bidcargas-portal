@@ -22,6 +22,7 @@ type LocationSearchFieldProps = {
   containerClassName?: string;
   value?: string;
   onValueChange?: (value: string) => void;
+  onLocationSelect?: (location: LocationResult) => void;
 } & Omit<
   InputHTMLAttributes<HTMLInputElement>,
   "value" | "onChange" | "type"
@@ -39,6 +40,7 @@ export const LocationSearchField = forwardRef<
     containerClassName,
     value = "",
     onValueChange,
+    onLocationSelect,
     className,
     id,
     placeholder,
@@ -115,6 +117,7 @@ export const LocationSearchField = forwardRef<
     setIsOpen(false);
     clearResults();
     onValueChange?.(locationString);
+    onLocationSelect?.(location);
   }
 
   return (

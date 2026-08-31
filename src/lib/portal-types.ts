@@ -18,6 +18,9 @@ export type UserRecord = {
   name: string;
   role: "account_admin" | "account_user";
   status: "active" | "inactive";
+  phone?: string | null;
+  contactChannel?: "whatsapp" | "landline" | null;
+  department?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -72,26 +75,186 @@ export type LoadStatus =
 
 export type BidStatus = "pending" | "accepted" | "rejected" | "cancelled";
 
+export type AnttCargoKind =
+  | "carga_geral"
+  | "granel_solido"
+  | "granel_liquido"
+  | "granel_pressurizada"
+  | "conteinerizada"
+  | "frigorificada"
+  | "neogranel"
+  | "perigosa_carga_geral"
+  | "perigosa_granel_solido"
+  | "perigosa_granel_liquido"
+  | "perigosa_conteinerizada"
+  | "perigosa_frigorificada";
+
+export type FreightKind = "full" | "complement" | "dedicated";
+export type PriceUnit = "trip" | "ton";
+export type PaymentMethod =
+  | "pix"
+  | "ted"
+  | "card"
+  | "check"
+  | "e_freight"
+  | "other";
+export type BodyTypeGroup = "closed" | "open" | "special";
+
+export const BODY_TYPE_GROUP_OPTIONS: Array<{
+  value: BodyTypeGroup;
+  label: string;
+}> = [
+  { value: "closed", label: "Fechada" },
+  { value: "open", label: "Aberta" },
+  { value: "special", label: "Especial" },
+];
+
+export type LoadTypeRecord = {
+  id: string;
+  name: string;
+  slug: string;
+  anttCargoKind: AnttCargoKind;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+export type LoadSpeciesRecord = {
+  id: string;
+  name: string;
+  slug: string;
+  loadTypeId?: string | null;
+  loadType?: LoadTypeRecord | null;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+export type BodyTypeRecord = {
+  id: string;
+  name: string;
+  slug: string;
+  group: BodyTypeGroup;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+export type LoadContactRecord = {
+  id?: string;
+  userId: string;
+  isPrimary: boolean;
+  user?: UserRecord | null;
+};
+
 export type LoadRecord = {
   id: string;
   accountId: string;
   title: string;
+  product?: string | null;
   description?: string | null;
   origin: string;
   destination: string;
+  originCity?: string | null;
+  originState?: string | null;
+  destinationCity?: string | null;
+  destinationState?: string | null;
   weightKg?: string | null;
   volumeM3?: string | null;
+  loadTypeId?: string | null;
+  loadType?: LoadTypeRecord | null;
+  loadSpeciesId?: string | null;
+  loadSpecies?: LoadSpeciesRecord | null;
+  freightKind: FreightKind;
   vehicleTypeId?: string | null;
   vehicleType?: VehicleTypeRecord | null;
+  vehicleTypes?: VehicleTypeRecord[];
+  bodyTypes?: BodyTypeRecord[];
+  paymentMethods: PaymentMethod[];
+  needsTracker: boolean;
+  emptyReturn: boolean;
+  highPerformance: boolean;
+  vehicleComposition: boolean;
+  needsTarp: boolean;
   pickupAt?: string | null;
   deliveryAt?: string | null;
   suggestedPriceCents?: number | null;
+  priceUnit: PriceUnit;
+  advancePercent: number;
+  tollSeparate: boolean;
   allowsCounterOffer: boolean;
+  distanceKm?: string | null;
+  anttFloorCents?: number | null;
+  anttTable?: string | null;
+  anttAxles?: number | null;
+  anttCargoKind?: string | null;
+  anttCcd?: string | null;
+  anttCc?: string | null;
+  anttLegalName?: string | null;
   notes?: string | null;
+  contacts?: LoadContactRecord[];
   status: LoadStatus;
   createdAt: string;
   updatedAt: string;
 };
+
+export type DashboardKpis = {
+  publishedTotal: number;
+  publishedPeriod: number;
+  interestedDriversPeriod: number;
+  confirmedPeriod: number;
+  hasActiveLoads: boolean;
+};
+
+export type UserQuota = {
+  used: number;
+  max: number | null;
+  unlimited: boolean;
+  hasTeamUsersFeature: boolean;
+};
+
+export type AnttQuote = {
+  legalName: string;
+  sourceUrl?: string | null;
+  tableCode: string;
+  cargoKind: AnttCargoKind;
+  axles: number;
+  distanceKm: number;
+  ccd: number;
+  cc: number;
+  emptyReturn: boolean;
+  outboundCents: number;
+  emptyReturnCents: number;
+  totalCents: number;
+};
+
+export const FREIGHT_KIND_OPTIONS: Array<{ value: FreightKind; label: string }> = [
+  { value: "full", label: "Completo" },
+  { value: "complement", label: "Complemento" },
+  { value: "dedicated", label: "Agregamento" },
+];
+
+export const PRICE_UNIT_OPTIONS: Array<{ value: PriceUnit; label: string }> = [
+  { value: "trip", label: "Por viagem" },
+  { value: "ton", label: "Por tonelada" },
+];
+
+export const PAYMENT_METHOD_OPTIONS: Array<{
+  value: PaymentMethod;
+  label: string;
+}> = [
+  { value: "pix", label: "Pix" },
+  { value: "ted", label: "TED" },
+  { value: "card", label: "Cartão" },
+  { value: "check", label: "Cheque" },
+  { value: "e_freight", label: "Frete eletrônico" },
+  { value: "other", label: "Outro" },
+];
+
+export const CONTACT_CHANNEL_OPTIONS: Array<{
+  value: "whatsapp" | "landline";
+  label: string;
+}> = [
+  { value: "whatsapp", label: "WhatsApp" },
+  { value: "landline", label: "Fixo" },
+];
 
 export type DriverRecord = {
   id: string;
@@ -172,4 +335,27 @@ export function fromDatetimeLocalValue(value: string): string | undefined {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return undefined;
   return date.toISOString();
+}
+
+export function parseCityState(value: string): {
+  city?: string;
+  state?: string;
+} {
+  const match = value.trim().match(/^(.*),\s*([A-Za-z]{2})$/);
+  if (!match) return {};
+  return { city: match[1].trim(), state: match[2].toUpperCase() };
+}
+
+export function freightKindLabel(kind: FreightKind) {
+  return FREIGHT_KIND_OPTIONS.find((item) => item.value === kind)?.label ?? kind;
+}
+
+export function priceUnitLabel(unit: PriceUnit) {
+  return PRICE_UNIT_OPTIONS.find((item) => item.value === unit)?.label ?? unit;
+}
+
+export function paymentMethodLabel(method: PaymentMethod) {
+  return (
+    PAYMENT_METHOD_OPTIONS.find((item) => item.value === method)?.label ?? method
+  );
 }

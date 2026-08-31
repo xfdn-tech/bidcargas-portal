@@ -1,6 +1,7 @@
 "use client";
 
 import { DataTable, type DataTableColumn } from "@/components/ui/data-table";
+import { PortalLoadDuplicateButton } from "@/components/portal-load-duplicate-button";
 import { PortalLoadStatusBadge } from "@/components/portal-load-status-badge";
 import type { LoadRecord, PaginatedMeta } from "@/lib/portal-types";
 import { formatDateTime, formatMoneyFromCents } from "@/lib/portal-types";
@@ -40,18 +41,29 @@ export function PortalLoadsTable({ items, meta, sort }: Props) {
     {
       id: "vehicleType",
       header: "Veículo",
-      cell: (row) => row.vehicleType?.name ?? "—",
+      cell: (row) =>
+        row.vehicleTypes?.map((item) => item.name).join(", ") ||
+        row.vehicleType?.name ||
+        "—",
     },
     {
       id: "suggestedPrice",
-      header: "Valor sugerido",
-      cell: (row) => formatMoneyFromCents(row.suggestedPriceCents),
+      header: "Valor",
+      cell: (row) =>
+        row.suggestedPriceCents != null
+          ? formatMoneyFromCents(row.suggestedPriceCents)
+          : "A combinar",
     },
     {
       id: "createdAt",
       header: "Criada em",
       sortKey: "createdAt",
       cell: (row) => formatDateTime(row.createdAt),
+    },
+    {
+      id: "duplicate",
+      header: "",
+      cell: (row) => <PortalLoadDuplicateButton loadId={row.id} compact />,
     },
   ];
 

@@ -98,21 +98,36 @@ export default async function PortalLoadsPage({ searchParams }: Props) {
         </Link>
       </form>
 
-      <PortalLoadsTable
-        items={data.items}
-        meta={data.meta}
-        sort={{
-          pathname: "/portal/loads",
-          current: toTableSort(listQuery),
-          searchParams: paginationParams,
-        }}
-      />
-
-      <Pagination
-        meta={data.meta}
-        pathname="/portal/loads"
-        searchParams={paginationParams}
-      />
+      {data.meta.totalItems === 0 && !listQuery.search && !statusFilter ? (
+        <div className="rounded-xl border border-dashed border-border bg-surface p-8 text-center">
+          <p className="text-lg font-semibold">Nenhuma carga ainda</p>
+          <p className="mt-1 text-sm text-muted">
+            Publique a primeira carga da empresa para receber propostas.
+          </p>
+          <div className="mt-4">
+            <ButtonLink href="/portal/loads/new" variant="primary">
+              Criar carga
+            </ButtonLink>
+          </div>
+        </div>
+      ) : (
+        <>
+          <PortalLoadsTable
+            items={data.items}
+            meta={data.meta}
+            sort={{
+              pathname: "/portal/loads",
+              current: toTableSort(listQuery),
+              searchParams: paginationParams,
+            }}
+          />
+          <Pagination
+            meta={data.meta}
+            pathname="/portal/loads"
+            searchParams={paginationParams}
+          />
+        </>
+      )}
     </div>
   );
 }

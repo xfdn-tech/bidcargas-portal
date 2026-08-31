@@ -10,7 +10,7 @@ import {
   toPaginationSearchParams,
   toTableSort,
 } from "@/lib/list-query";
-import type { Paginated, UserRecord } from "@/lib/portal-types";
+import type { Paginated, UserQuota, UserRecord } from "@/lib/portal-types";
 import { serverApi } from "@/lib/server-api";
 
 type Props = {
@@ -31,15 +31,22 @@ export default async function PortalUsersPage({ searchParams }: Props) {
   const listQuery = parseListQuery(await searchParams);
   const paginationParams = toPaginationSearchParams(listQuery);
 
-  const data = await serverApi<Paginated<UserRecord>>("/portal/users", {
-    searchParams: toApiListParams(listQuery),
-  });
+  const [data, quota] = await Promise.all([
+    serverApi<Paginated<UserRecord>>("/portal/users", {
+      searchParams: toApiListParams(listQuery),
+    }),
+    serverApi<UserQuota>("/portal/users/quota").catch(() => null),
+  ]);
 
   return (
     <div className="space-y-6">
       <PageHeader
         title="Usuários da empresa"
-        description="Equipe com acesso ao portal da embarcadora."
+        description={
+          quota?.hasTeamUsersFeature && quota.max != null
+            ? `Equipe com acesso ao portal. ${quota.used} de ${quota.max} usuários do plano.`
+            : "Equipe com acesso ao portal da embarcadora."
+        }
         actions={
           canManage ? (
             <ButtonLink href="/portal/users/new" variant="primary">

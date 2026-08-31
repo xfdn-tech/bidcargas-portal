@@ -1208,3 +1208,92 @@ body {
 .load-form-error {
   margin-bottom: 1rem;
 }
+
+.load-form-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.load-form-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--foreground);
+}
+
+.load-form-chip.is-selected {
+  border-color: color-mix(in srgb, var(--brand) 55%, var(--border));
+  background: color-mix(in srgb, var(--brand-soft) 70%, var(--card));
+}
+
+.load-form-chip-shortcuts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.load-form-catalog-group {
+  margin-top: 0.875rem;
+}
+
+.load-form-catalog-group-title {
+  margin-bottom: 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.load-form-more {
+  border-radius: 0.875rem;
+  border: 1px solid var(--border);
+  background: var(--card);
+  padding: 0.75rem 1rem;
+}
+
+.load-form-more-toggle {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.load-form-antt {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.8125rem;
+}
+
+.load-form-antt-total {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.load-form-antt-delta {
+  margin-top: 0.25rem;
+  font-size: 0.9375rem;
+  font-weight: 700;
+}
+
+.load-form-antt-delta.is-below {
+  color: var(--danger);
+}
+
+.load-form-antt-delta.is-above {
+  color: var(--success);
+}
+
+.load-form-antt-delta.is-equal {
+  color: var(--foreground);
+}
