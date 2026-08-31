@@ -3,8 +3,8 @@
 import { FormEvent, useEffect, useState } from "react";
 import {
   api,
-  canAccessPortal,
   getApiErrorMessage,
+  homePathForUser,
   type AuthUser,
 } from "@/lib/api";
 import { resolveClientAccountSlug } from "@/lib/account-slug";
@@ -40,8 +40,9 @@ export function LoginForm({ initialAccountSlug = "", brandTitle }: Props) {
 
     void api<AuthUser>("/auth/me", { headers })
       .then((user) => {
-        if (canAccessPortal(user)) {
-          window.location.href = "/portal";
+        const home = homePathForUser(user);
+        if (home) {
+          window.location.href = home;
         }
       })
       .catch(() => {});
@@ -95,12 +96,13 @@ export function LoginForm({ initialAccountSlug = "", brandTitle }: Props) {
         headers: authHeaders(),
       });
 
-      if (!canAccessPortal(result.user)) {
-        setError("Este portal é para usuários da empresa embarcadora.");
+      const home = homePathForUser(result.user);
+      if (!home) {
+        setError("Este acesso não está disponível neste portal.");
         return;
       }
 
-      window.location.href = "/portal";
+      window.location.href = home;
     } catch (requestError) {
       setError(getApiErrorMessage(requestError, "Código inválido ou expirado."));
     } finally {
@@ -108,18 +110,18 @@ export function LoginForm({ initialAccountSlug = "", brandTitle }: Props) {
     }
   }
 
-  const title = brandTitle?.trim() || "Portal da empresa";
+  const title = brandTitle?.trim() || "Entrar";
 
   return (
     <div className="glass-card animate-fade-in w-full rounded-3xl border border-border p-8 shadow-xl shadow-black/20">
       <div className="space-y-2">
-        <p className="eyebrow">Portal embarcador</p>
+        <p className="eyebrow">Acesso ao portal</p>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
           {title}
         </h1>
         <p className="text-sm text-muted">
-          Use o e-mail cadastrado na sua empresa. Identificamos sua conta
-          automaticamente.
+          Use o e-mail cadastrado. Empresas entram no portal da embarcadora;
+          motoristas, no portal do motorista.
         </p>
       </div>
 
@@ -136,7 +138,7 @@ export function LoginForm({ initialAccountSlug = "", brandTitle }: Props) {
               autoComplete="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              placeholder="operacao@empresa.com"
+              placeholder="seu@email.com"
               className="input-field"
             />
           </label>

@@ -75,6 +75,24 @@ export type LoadStatus =
 
 export type BidStatus = "pending" | "accepted" | "rejected" | "cancelled";
 
+export type DriverBidPhase = "in_progress" | "closed" | "completed" | "all";
+
+export const DRIVER_BID_PHASES: Array<{
+  value: DriverBidPhase;
+  label: string;
+}> = [
+  { value: "in_progress", label: "Em andamento" },
+  { value: "closed", label: "Fechadas" },
+  { value: "completed", label: "Concluídas" },
+  { value: "all", label: "Todas" },
+];
+
+export function parseDriverBidPhase(value?: string): DriverBidPhase {
+  return DRIVER_BID_PHASES.some((entry) => entry.value === value)
+    ? (value as DriverBidPhase)
+    : "in_progress";
+}
+
 export type AnttCargoKind =
   | "carga_geral"
   | "granel_solido"
@@ -144,9 +162,81 @@ export type LoadContactRecord = {
   user?: UserRecord | null;
 };
 
+export type DriverDashboardKpis = {
+  availableLoads: number;
+  pendingBids: number;
+  acceptedBids: number;
+  csatAvg?: string | null;
+  csatCount: number;
+  finance: {
+    periodStart: string;
+    earnedCents: number;
+    pendingReceivableCents: number;
+    tripsCompleted: number;
+    tripsInProgress: number;
+    earningsByDay: Array<{ date: string; amountCents: number }>;
+  };
+  activeTrips: Array<{
+    bidId: string;
+    loadId: string;
+    title: string;
+    origin: string;
+    destination: string;
+    amountCents: number;
+    loadStatus: LoadStatus;
+    accountName?: string | null;
+    updatedAt: string;
+  }>;
+  recentPendingBids: Array<{
+    bidId: string;
+    loadId: string;
+    title: string;
+    amountCents: number;
+    loadStatus: LoadStatus;
+    accountName?: string | null;
+    createdAt: string;
+  }>;
+};
+
+export type DriverProfileRecord = {
+  id: string;
+  name: string;
+  cpf: string;
+  phone: string;
+  email?: string | null;
+  status: string;
+  cnhNumber?: string | null;
+  cnhCategory?: string | null;
+  cnhExpiresAt?: string | null;
+};
+
+export type DriverVehicleTrailerRecord = {
+  id: string;
+  plate: string;
+  axles: number;
+  label?: string | null;
+  bodyType?: { id: string; name: string } | null;
+};
+
+export type DriverVehicleRecord = {
+  id: string;
+  plate: string;
+  brand?: string | null;
+  model?: string | null;
+  year?: number | null;
+  hasAnttRegistration?: boolean;
+  anttRntrc?: string | null;
+  isPrimary: boolean;
+  isActive?: boolean;
+  vehicleType?: VehicleTypeRecord | { id: string; name: string } | null;
+  bodyType?: BodyTypeRecord | { id: string; name: string } | null;
+  trailers?: DriverVehicleTrailerRecord[];
+};
+
 export type LoadRecord = {
   id: string;
   accountId: string;
+  account?: { id: string; name: string; slug: string } | null;
   title: string;
   product?: string | null;
   description?: string | null;
@@ -190,6 +280,7 @@ export type LoadRecord = {
   anttLegalName?: string | null;
   notes?: string | null;
   contacts?: LoadContactRecord[];
+  myBid?: BidRecord | null;
   status: LoadStatus;
   createdAt: string;
   updatedAt: string;
@@ -201,6 +292,21 @@ export type DashboardKpis = {
   interestedDriversPeriod: number;
   confirmedPeriod: number;
   hasActiveLoads: boolean;
+  activeLoadsCount: number;
+  pendingBidsCount: number;
+  newBidsLast24h: number;
+  bidsByDay: Array<{ date: string; count: number }>;
+  loadsByStatus: Array<{ status: LoadStatus; count: number }>;
+  bidsByStatus: Array<{ status: BidStatus; count: number }>;
+  recentBids: Array<{
+    id: string;
+    loadId: string;
+    loadTitle: string;
+    driverName: string;
+    amountCents: number;
+    status: BidStatus;
+    createdAt: string;
+  }>;
 };
 
 export type UserQuota = {
@@ -262,11 +368,68 @@ export type DriverRecord = {
   cpf: string;
   phone: string;
   email?: string | null;
+  csatAvg?: string | null;
+  csatCount?: number;
+  riskLevel?: "low" | "medium" | "high" | "blocked";
+  cnhNumber?: string | null;
+  cnhCategory?: string | null;
+  cnhExpiresAt?: string | null;
+};
+
+export type DriverDetailRecord = DriverRecord & {
+  vehicles?: DriverVehicleRecord[];
+};
+
+export type DriverGroupRecord = {
+  id: string;
+  accountId: string;
+  name: string;
+  description?: string | null;
+  sortOrder: number;
+  memberCount?: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type DriverGroupMemberRecord = {
+  id: string;
+  groupId: string;
+  driverId: string;
+  notes?: string | null;
+  driver?: DriverRecord | null;
+  createdAt: string;
+};
+
+export type DriverFavoriteRecord = {
+  id: string;
+  accountId: string;
+  driverId: string;
+  notes?: string | null;
+  driver?: DriverRecord | null;
+  createdAt: string;
+};
+
+export type DriverRatingRecord = {
+  id: string;
+  score: number;
+  lowScoreReason?: string | null;
+  comment?: string | null;
+  createdAt: string;
+  ratedByUser?: { id: string; name: string } | null;
+};
+
+export type DriverRatingContext = {
+  enabled: boolean;
+  reasonBelowScore: number;
+  canRate: boolean;
+  acceptedDriver?: DriverRecord | null;
+  rating?: DriverRatingRecord | null;
 };
 
 export type BidRecord = {
   id: string;
   loadId: string;
+  load?: Pick<LoadRecord, "id" | "title" | "origin" | "destination" | "status"> | null;
   driverId: string;
   driver?: DriverRecord | null;
   amountCents: number;
@@ -299,6 +462,53 @@ export function loadStatusLabel(status: LoadStatus) {
 
 export function bidStatusLabel(status: BidStatus) {
   return BID_STATUSES.find((entry) => entry.value === status)?.label ?? status;
+}
+
+export const DRIVER_RISK_LEVELS: Array<{
+  value: NonNullable<DriverRecord["riskLevel"]>;
+  label: string;
+}> = [
+  { value: "low", label: "Baixo" },
+  { value: "medium", label: "Médio" },
+  { value: "high", label: "Alto" },
+  { value: "blocked", label: "Bloqueado" },
+];
+
+export function driverRiskLabel(risk?: DriverRecord["riskLevel"]) {
+  if (!risk) return "—";
+  return DRIVER_RISK_LEVELS.find((entry) => entry.value === risk)?.label ?? risk;
+}
+
+export function formatDriverCsat(driver?: Pick<DriverRecord, "csatAvg" | "csatCount"> | null) {
+  if (!driver?.csatCount) return "Sem avaliações";
+  const label = driver.csatCount === 1 ? "avaliação" : "avaliações";
+  return `${Number(driver.csatAvg ?? 0).toFixed(1)} / 5 · ${driver.csatCount} ${label}`;
+}
+
+export function formatDriverCsatShort(
+  driver?: Pick<DriverRecord, "csatAvg" | "csatCount"> | null,
+) {
+  if (!driver?.csatCount) return null;
+  return Number(driver.csatAvg ?? 0).toFixed(1);
+}
+
+export function formatCpf(value?: string | null) {
+  if (!value) return "—";
+  const digits = value.replace(/\D/g, "");
+  if (digits.length !== 11) return value;
+  return `${digits.slice(0, 3)}.${digits.slice(3, 6)}.${digits.slice(6, 9)}-${digits.slice(9)}`;
+}
+
+export function formatPhone(value?: string | null) {
+  if (!value) return "—";
+  const digits = value.replace(/\D/g, "");
+  if (digits.length === 11) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  }
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+  return value;
 }
 
 export function formatMoneyFromCents(cents?: number | null) {

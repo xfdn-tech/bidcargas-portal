@@ -44,6 +44,14 @@ export function NavIcon({ iconKey, className }: NavIconProps) {
           <path d="M5 17V8l2.5-2H16L19 8v9" />
         </svg>
       );
+    case "clipboard":
+      return (
+        <svg {...props}>
+          <path d="M9 5h6M8 3h8a1 1 0 0 1 1 1v2H7V4a1 1 0 0 1 1-1Z" />
+          <rect x="6" y="6" width="12" height="15" rx="2" />
+          <path d="M9 11h6M9 15h4" />
+        </svg>
+      );
     case "home":
     default:
       return (

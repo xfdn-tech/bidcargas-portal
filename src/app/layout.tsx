@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "BidCargas — Portal",
-  description: "Portal para empresas embarcadoras",
+  description: "Portal para empresas embarcadoras e motoristas",
 };
 
 export default function RootLayout({

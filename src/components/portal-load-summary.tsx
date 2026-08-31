@@ -1,5 +1,8 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useState, type ReactNode } from "react";
 import { PortalLoadStatusBadge } from "@/components/portal-load-status-badge";
+import { Button } from "@/components/ui";
 import type { LoadRecord } from "@/lib/portal-types";
 import {
   formatDateTime,
@@ -13,22 +16,25 @@ type Props = {
   load: LoadRecord;
 };
 
-function DetailItem({
-  label,
-  value,
-}: {
+type DetailField = {
   label: string;
   value: ReactNode;
-}) {
+};
+
+function DetailItem({ label, value }: DetailField) {
   return (
-    <div>
-      <p className="text-xs uppercase tracking-wide text-muted">{label}</p>
-      <p className="mt-1 text-sm text-foreground">{value}</p>
+    <div className="min-w-0">
+      <p className="text-[0.6875rem] font-medium uppercase tracking-wide text-muted">
+        {label}
+      </p>
+      <p className="mt-0.5 truncate text-sm text-foreground">{value}</p>
     </div>
   );
 }
 
 export function PortalLoadSummary({ load }: Props) {
+  const [expanded, setExpanded] = useState(false);
+
   const vehicles =
     load.vehicleTypes?.map((item) => item.name).join(", ") ||
     load.vehicleType?.name ||
@@ -45,10 +51,59 @@ export function PortalLoadSummary({ load }: Props) {
     load.needsTarp ? "Lona" : null,
   ].filter(Boolean);
 
+  const valueLabel =
+    load.suggestedPriceCents != null
+      ? `${formatMoneyFromCents(load.suggestedPriceCents)} ${priceUnitLabel(load.priceUnit ?? "trip")}`
+      : "A combinar";
+
+  const anttLabel =
+    load.anttFloorCents != null
+      ? `${formatMoneyFromCents(load.anttFloorCents)}${load.anttTable ? ` · tabela ${load.anttTable}` : ""}${load.anttAxles ? ` · ${load.anttAxles} eixos` : ""}`
+      : "—";
+
+  const compactFields: DetailField[] = [
+    { label: "Produto", value: load.product ?? "—" },
+    { label: "Tipo de carga", value: load.loadType?.name ?? "—" },
+    { label: "Valor", value: valueLabel },
+    { label: "Veículos", value: vehicles },
+    { label: "Distância", value: load.distanceKm ? `${load.distanceKm} km` : "—" },
+    { label: "Piso ANTT", value: anttLabel },
+  ];
+
+  const expandedFields: DetailField[] = [
+    { label: "Espécie", value: load.loadSpecies?.name ?? "—" },
+    {
+      label: "Tipo de frete",
+      value: freightKindLabel(load.freightKind ?? "full"),
+    },
+    { label: "Peso", value: load.weightKg ? `${load.weightKg} kg` : "—" },
+    { label: "Volume", value: load.volumeM3 ? `${load.volumeM3} m³` : "—" },
+    { label: "Carroceria", value: bodies },
+    { label: "Adiantamento", value: `${load.advancePercent ?? 0}%` },
+    { label: "Pagamento", value: payments },
+    { label: "Pedágio", value: load.tollSeparate ? "À parte" : "Incluso" },
+    {
+      label: "Extras",
+      value: extras.length ? extras.join(", ") : "Nenhum",
+    },
+    { label: "Coleta prevista", value: formatDateTime(load.pickupAt) },
+    { label: "Entrega prevista", value: formatDateTime(load.deliveryAt) },
+    {
+      label: "Responsáveis",
+      value: load.contacts?.length
+        ? load.contacts.map((item) => item.user?.name ?? item.userId).join(", ")
+        : "—",
+    },
+  ];
+
+  const visibleFields = expanded
+    ? [...compactFields, ...expandedFields]
+    : compactFields;
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
+        <div className="min-w-0">
           <h1 className="page-title">{load.title}</h1>
           <p className="page-subtitle">
             {load.origin} → {load.destination}
@@ -57,70 +112,33 @@ export function PortalLoadSummary({ load }: Props) {
         <PortalLoadStatusBadge status={load.status} />
       </div>
 
-      <div className="grid gap-4 rounded-xl border border-border bg-surface p-5 sm:grid-cols-2 lg:grid-cols-3">
-        <DetailItem label="Produto" value={load.product ?? "—"} />
-        <DetailItem label="Tipo de carga" value={load.loadType?.name ?? "—"} />
-        <DetailItem label="Espécie" value={load.loadSpecies?.name ?? "—"} />
-        <DetailItem
-          label="Tipo de frete"
-          value={freightKindLabel(load.freightKind ?? "full")}
-        />
-        <DetailItem
-          label="Peso"
-          value={load.weightKg ? `${load.weightKg} kg` : "—"}
-        />
-        <DetailItem
-          label="Volume"
-          value={load.volumeM3 ? `${load.volumeM3} m³` : "—"}
-        />
-        <DetailItem label="Veículos" value={vehicles} />
-        <DetailItem label="Carroceria" value={bodies} />
-        <DetailItem
-          label="Distância"
-          value={load.distanceKm ? `${load.distanceKm} km` : "—"}
-        />
-        <DetailItem
-          label="Valor"
-          value={
-            load.suggestedPriceCents != null
-              ? `${formatMoneyFromCents(load.suggestedPriceCents)} ${priceUnitLabel(load.priceUnit ?? "trip")}`
-              : "A combinar"
-          }
-        />
-        <DetailItem
-          label="Piso ANTT"
-          value={
-            load.anttFloorCents != null
-              ? `${formatMoneyFromCents(load.anttFloorCents)}${load.anttTable ? ` · tabela ${load.anttTable}` : ""}${load.anttAxles ? ` · ${load.anttAxles} eixos` : ""}`
-              : "—"
-          }
-        />
-        <DetailItem label="Adiantamento" value={`${load.advancePercent ?? 0}%`} />
-        <DetailItem label="Pagamento" value={payments} />
-        <DetailItem
-          label="Pedágio"
-          value={load.tollSeparate ? "À parte" : "Incluso"}
-        />
-        <DetailItem
-          label="Extras"
-          value={extras.length ? extras.join(", ") : "Nenhum"}
-        />
-        <DetailItem label="Coleta prevista" value={formatDateTime(load.pickupAt)} />
-        <DetailItem label="Entrega prevista" value={formatDateTime(load.deliveryAt)} />
-        <DetailItem
-          label="Responsáveis"
-          value={
-            load.contacts?.length
-              ? load.contacts
-                  .map((item) => item.user?.name ?? item.userId)
-                  .join(", ")
-              : "—"
-          }
-        />
+      <div className="rounded-xl border border-border bg-surface">
+        <div className="grid gap-3 px-4 py-3 sm:grid-cols-2 sm:px-5 sm:py-4 lg:grid-cols-3">
+          {visibleFields.map((field) => (
+            <DetailItem key={field.label} label={field.label} value={field.value} />
+          ))}
+        </div>
+
+        <div className="flex items-center justify-between border-t border-border px-4 py-2 sm:px-5">
+          <p className="text-xs text-muted">
+            {expanded
+              ? "Todos os detalhes da carga"
+              : "Resumo compacto — expanda para ver o restante"}
+          </p>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setExpanded((current) => !current)}
+            aria-expanded={expanded}
+          >
+            {expanded ? "Recolher" : "Ver detalhes"}
+          </Button>
+        </div>
       </div>
 
-      {load.notes ? (
-        <section className="space-y-2">
+      {expanded && load.notes ? (
+        <section className="space-y-2 rounded-xl border border-border bg-surface px-4 py-3 sm:px-5">
           <h2 className="text-sm font-semibold text-foreground">Observações</h2>
           <p className="whitespace-pre-wrap text-sm text-muted">{load.notes}</p>
         </section>

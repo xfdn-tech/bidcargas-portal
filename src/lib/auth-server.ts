@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { AuthUser } from "@/lib/api";
-import { canAccessPortal } from "@/lib/api";
+import { canAccessDriverPortal, canAccessPortal } from "@/lib/api";
 import { AUTH_CLIENT, AUTH_COOKIE_NAME } from "@/lib/auth-cookie";
 import { resolveApiUrl } from "@/lib/api-url";
 
@@ -29,10 +29,30 @@ export async function getSessionUser(): Promise<AuthUser | null> {
 
 export async function requirePortalUser(): Promise<AuthUser> {
   const user = await getSessionUser();
-  if (!user || !canAccessPortal(user)) {
+  if (!user) {
+    redirect("/login");
+  }
+  if (canAccessDriverPortal(user)) {
+    redirect("/driver");
+  }
+  if (!canAccessPortal(user)) {
     redirect("/login");
   }
 
+  return user;
+}
+
+export async function requireDriverUser(): Promise<AuthUser> {
+  const user = await getSessionUser();
+  if (!user) {
+    redirect("/login");
+  }
+  if (canAccessPortal(user)) {
+    redirect("/portal");
+  }
+  if (!canAccessDriverPortal(user)) {
+    redirect("/login");
+  }
   return user;
 }
 

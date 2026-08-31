@@ -107,3 +107,13 @@ export function canAccessPortal(user: AuthUser): boolean {
     (user.role === "super_admin" && Boolean(user.isImpersonating))
   );
 }
+
+export function canAccessDriverPortal(user: AuthUser): boolean {
+  return user.role === "driver";
+}
+
+export function homePathForUser(user: AuthUser): string | null {
+  if (canAccessDriverPortal(user)) return "/driver";
+  if (canAccessPortal(user)) return "/portal";
+  return null;
+}

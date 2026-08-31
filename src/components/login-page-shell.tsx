@@ -28,7 +28,7 @@ export function LoginPageShell({
         <header className="relative flex items-center justify-between">
           <div>
             <p className="text-sm font-semibold text-foreground">{brandName}</p>
-            <p className="text-xs text-muted">Portal embarcador</p>
+            <p className="text-xs text-muted">Portal BidCargas</p>
           </div>
           <ThemeToggle />
         </header>
@@ -43,7 +43,7 @@ export function LoginPageShell({
           <p className="text-3xl font-semibold leading-tight tracking-tight xl:text-4xl">
             Publique cargas.
             <br />
-            Receba lances.
+            Envie propostas.
             <br />
             Feche frete com transparência.
           </p>
