@@ -20,7 +20,7 @@ FROM node:20-alpine AS runner
 
 LABEL maintainer="XFDN Tech"
 LABEL description="BidCargas portal"
-LABEL version="0.0.8"
+LABEL version="0.0.9"
 
 WORKDIR /app
 

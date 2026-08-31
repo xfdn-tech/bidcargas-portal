@@ -1,6 +1,5 @@
 # BidCargas portal — build e push para GitHub Container Registry (GHCR)
-# Deploy Swarm via SSH desabilitado temporariamente (infra ainda não montada)
-# Secrets deploy (quando reativar): VPS_HOST, VPS_USER, VPS_SSH_KEY
+# Secrets deploy: VPS_HOST, VPS_USER, VPS_SSH_KEY
 
 name: Build and push Docker image
 
@@ -12,7 +11,7 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ghcr.io/${{ github.repository }}
-  APP_VERSION: 0.0.8
+  APP_VERSION: 0.0.9
   DOCKER_SWARM_SERVICE: ${{ vars.DOCKER_SWARM_SERVICE || 'bidcargas-main_bidcargas-portal' }}
 
 jobs:
@@ -81,23 +80,23 @@ jobs:
           echo "${{ steps.meta.outputs.tags }}" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
 
-      # Deploy via SSH — desabilitado temporariamente (infra Swarm ainda não montada)
-      # - name: Deploy via SSH
-      #   id: deploy
-      #   uses: appleboy/ssh-action@v1.2.2
-      #   with:
-      #     host: ${{ secrets.VPS_HOST }}
-      #     username: ${{ secrets.VPS_USER }}
-      #     key: ${{ secrets.VPS_SSH_KEY }}
-      #     port: ${{ vars.VPS_SSH_PORT || '22' }}
-      #     timeout: 90s
-      #     command_timeout: 15m
-      #     script_stop: true
-      #     script: |
-      #       docker service update \
-      #         --with-registry-auth \
-      #         --image ${{ env.IMAGE_NAME }}:latest \
-      #         ${{ env.DOCKER_SWARM_SERVICE }}
+      - name: Deploy via SSH
+        id: deploy
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USER }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ vars.VPS_SSH_PORT || '22' }}
+          timeout: 90s
+          command_timeout: 15m
+          script_stop: true
+          script: |
+            docker service update \
+              --with-registry-auth \
+              --image ${{ env.IMAGE_NAME }}:latest \
+              ${{ env.DOCKER_SWARM_SERVICE }}
 
   notify:
     needs: build-and-push
